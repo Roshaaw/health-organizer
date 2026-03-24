@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="top-banner">
+        <div class="top-banner-content">
+            <div>
+                <h1>User Profile</h1>
+                <p>View personal and medical details in one place.</p>
+            </div>
+            <nav class="top-nav">
+                <a href="/">Dashboard</a>
+                <a href="/login">Login</a>
+                <a href="/signup">Sign Up</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="card">
+            <h2>Basic Information</h2>
+            <div class="profile-grid">
+                <div class="profile-item"><span>Full Name</span><strong>{{ user.full_name }}</strong></div>
+                <div class="profile-item"><span>Email</span><strong>{{ user.email }}</strong></div>
+                <div class="profile-item"><span>Phone</span><strong>{{ user.phone }}</strong></div>
+                <div class="profile-item"><span>Birthday</span><strong>{{ user.birthday }}</strong></div>
+                <div class="profile-item"><span>Height</span><strong>{{ user.height }}</strong></div>
+                <div class="profile-item"><span>Weight</span><strong>{{ user.weight }}</strong></div>
+                <div class="profile-item"><span>Blood Type</span><strong>{{ user.blood_type }}</strong></div>
+                <div class="profile-item"><span>Allergies</span><strong>{{ user.allergies }}</strong></div>
+                <div class="profile-item"><span>Primary Doctor</span><strong>{{ user.primary_doctor }}</strong></div>
+                <div class="profile-item"><span>Emergency Contact</span><strong>{{ user.emergency_contact }}</strong></div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

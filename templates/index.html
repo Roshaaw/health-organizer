@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal Health Organizer</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Top navigation / header -->
+    <header class="top-banner">
+      <div class="top-banner-content">
+        <div>
+          <h1>Personal Health Organizer</h1>
+          <p>
+            Manage medications, symptoms, appointments, and personal health
+            details.
+          </p>
+        </div>
+
+        <nav class="top-nav">
+          <a href="/">Dashboard</a>
+          <a href="/profile">Profile</a>
+          <a href="/login">Login</a>
+          <a href="/signup">Sign Up</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Welcome section -->
+      <section class="card welcome-card">
+        <h2>Welcome back, User</h2>
+        <p class="section-description">
+          Here’s your personal health dashboard. Track medications, symptoms,
+          and upcoming appointments.
+        </p>
+      </section>
+
+      <!-- Medication section -->
+      <section class="grid-two">
+        <section class="card">
+          <h2>Medication Tracker</h2>
+          <p class="section-description">
+            Add medications with dosage and frequency.
+          </p>
+
+          <form
+            action="{{ url_for('add_medication') }}"
+            method="POST"
+            class="form-grid"
+          >
+            <input
+              type="text"
+              name="name"
+              placeholder="Medication Name"
+              required
+            />
+            <input
+              type="text"
+              name="dosage"
+              placeholder="Dosage (e.g. 200mg)"
+              required
+            />
+            <input
+              type="text"
+              name="frequency"
+              placeholder="Frequency (e.g. Twice a day)"
+              required
+            />
+            <button type="submit">Add Medication</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Saved Medications</h2>
+
+          {% if medications %}
+          <div class="item-list">
+            {% for med in medications %}
+            <div class="item-card">
+              <div>
+                <h3>{{ med.name }}</h3>
+                <p><strong>Dosage:</strong> {{ med.dosage }}</p>
+                <p><strong>Frequency:</strong> {{ med.frequency }}</p>
+              </div>
+
+              <form
+                action="{{ url_for('delete_medication', med_id=med._id) }}"
+                method="POST"
+              >
+                <button type="submit" class="delete-btn">Delete</button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="empty-state">No medications added yet.</p>
+          {% endif %}
+        </section>
+      </section>
+
+      <!-- Symptoms + appointments section -->
+      <section class="grid-two">
+        <!-- Symptoms -->
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <h2>Symptoms Log</h2>
+              <p class="section-description">
+                Track symptoms and update notes over time.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="icon-btn"
+              onclick="openModal('symptomModal')"
+            >
+              + Add Symptom
+            </button>
+          </div>
+
+          <div class="item-list top-space">
+            {% for symptom in symptoms %}
+            <div class="item-card">
+              <div>
+                <h3>{{ symptom.name }}</h3>
+                <p><strong>Severity:</strong> {{ symptom.severity }}</p>
+                <p><strong>Date:</strong> {{ symptom.date }}</p>
+                <p><strong>Notes:</strong> {{ symptom.notes }}</p>
+              </div>
+
+              <!-- Opens edit symptom modal and fills it with current symptom data -->
+              <button
+                type="button"
+                class="secondary-btn small-btn"
+                onclick="openEditSymptomModal('{{ symptom._id|string  }}', '{{ symptom.name }}', '{{ symptom.severity }}', '{{ symptom.date }}', '{{ symptom.notes }}')"
+              >
+                Edit
+              </button>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <!-- Appointments -->
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <h2>Appointment Log</h2>
+              <p class="section-description">
+                Organize appointments by medical specialty.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="icon-btn"
+              onclick="openModal('appointmentModal')"
+            >
+              + Add Appointment
+            </button>
+          </div>
+
+          <!-- Appointment category filter buttons -->
+          <div class="appt-category-list top-space">
+            <button
+              class="appt-category-btn active"
+              onclick="showCategory('Primary Care', this)"
+            >
+              Primary Care
+            </button>
+            <button
+              class="appt-category-btn"
+              onclick="showCategory('Dentistry', this)"
+            >
+              Dentistry
+            </button>
+            <button
+              class="appt-category-btn"
+              onclick="showCategory('Optometry / Ophthalmology', this)"
+            >
+              Eye Care
+            </button>
+            <button
+              class="appt-category-btn"
+              onclick="showCategory('Neurology', this)"
+            >
+              Neurology
+            </button>
+            <button
+              class="appt-category-btn"
+              onclick="showCategory('Cardiology', this)"
+            >
+              Cardiology
+            </button>
+            <button
+              class="appt-category-btn"
+              onclick="showCategory('Dermatology', this)"
+            >
+              Dermatology
+            </button>
+          </div>
+
+          <!-- Appointment cards -->
+          <div class="item-list top-space">
+            {% for appt in appointments %}
+            <div
+              class="item-card appointment-card"
+              data-category="{{ appt.doctor_type }}"
+            >
+              <div>
+                <h3>{{ appt.doctor }}</h3>
+                <p><strong>Specialty:</strong> {{ appt.doctor_type }}</p>
+                <p><strong>Date:</strong> {{ appt.date }}</p>
+                <p><strong>Reason:</strong> {{ appt.reason }}</p>
+
+                <!-- Status badge -->
+                <p>
+                  <strong>Status:</strong>
+                  <span
+                    class="status-badge status-{{ appt.status|lower|replace(' ', '-') }}"
+                  >
+                    {{ appt.status }}
+                  </span>
+                </p>
+
+                {% if appt.notes %}
+                <p><strong>Notes:</strong> {{ appt.notes }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Opens edit appointment modal and fills it with current appointment data -->
+              <button
+                type="button"
+                class="secondary-btn small-btn"
+                onclick="openEditAppointmentModal('{{ appt.id }}', '{{ appt.doctor }}', '{{ appt.doctor_type }}', '{{ appt.date }}', '{{ appt.reason }}', '{{ appt.notes }}', '{{ appt.status }}')"
+              >
+                Edit
+              </button>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Shows when no appointments exist in the selected category -->
+          <p
+            id="appointmentEmptyMessage"
+            class="empty-state"
+            style="display: none"
+          >
+            No appointments in this category yet.
+          </p>
+        </section>
+      </section>
+    </main>
+
+    <!-- =========================
+         ADD SYMPTOM MODAL
+         ========================= -->
+    <div class="modal-overlay" id="symptomModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2>Add Symptom</h2>
+          <button class="close-btn" onclick="closeModal('symptomModal')">
+            &times;
+          </button>
+        </div>
+
+        <form
+          action="{{ url_for('add_symptom') }}"
+          method="POST"
+          class="form-grid"
+        >
+          <input type="text" name="name" placeholder="Symptom Name" required />
+          <input type="text" name="severity" placeholder="Severity" required />
+          <input type="date" name="date" required />
+          <textarea name="notes" placeholder="Notes"></textarea>
+          <button type="submit">Save Symptom</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- =========================
+         EDIT SYMPTOM MODAL
+         ========================= -->
+    <div class="modal-overlay" id="editSymptomModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2>Edit Symptom</h2>
+          <button class="close-btn" onclick="closeModal('editSymptomModal')">
+            &times;
+          </button>
+        </div>
+
+        <form
+          action="{{ url_for('edit_symptom') }}"
+          method="POST"
+          class="form-grid"
+        >
+          <!-- Hidden id lets Flask know which symptom to update -->
+          <input type="hidden" id="editSymptomId" name="id" />
+
+          <input
+            type="text"
+            id="editSymptomName"
+            name="name"
+            placeholder="Symptom Name"
+            required
+          />
+          <input
+            type="text"
+            id="editSymptomSeverity"
+            name="severity"
+            placeholder="Severity"
+            required
+          />
+          <input type="date" id="editSymptomDate" name="date" required />
+          <textarea
+            id="editSymptomNotes"
+            name="notes"
+            placeholder="Notes"
+          ></textarea>
+
+          <button type="submit">Update Symptom</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- =========================
+         ADD APPOINTMENT MODAL
+         ========================= -->
+    <div class="modal-overlay" id="appointmentModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2>Add Appointment</h2>
+          <button class="close-btn" onclick="closeModal('appointmentModal')">
+            &times;
+          </button>
+        </div>
+
+        <form
+          action="{{ url_for('add_appointment') }}"
+          method="POST"
+          class="form-grid"
+        >
+          <input type="text" name="doctor" placeholder="Doctor Name" required />
+
+          <!-- Dropdown for common specialties -->
+          <select
+            id="doctorTypeSelect"
+            name="doctor_type"
+            onchange="toggleCustomSpecialty()"
+            required
+          >
+            <option value="">Select Specialty</option>
+            <option value="Primary Care">Primary Care</option>
+            <option value="Dentistry">Dentistry</option>
+            <option value="Optometry / Ophthalmology">
+              Optometry / Ophthalmology
+            </option>
+            <option value="Neurology">Neurology</option>
+            <option value="Cardiology">Cardiology</option>
+            <option value="Dermatology">Dermatology</option>
+            <option value="Gynecology">Gynecology</option>
+            <option value="Psychiatry">Psychiatry</option>
+            <option value="Physical Therapy">Physical Therapy</option>
+            <option value="Other Specialty">Other Specialty</option>
+          </select>
+
+          <!-- Only shown if user chooses Other Specialty -->
+          <input
+            type="text"
+            id="customSpecialtyInput"
+            name="custom_specialty"
+            placeholder="Enter Custom Specialty"
+            style="display: none"
+          />
+
+          <input type="date" name="date" required />
+          <input
+            type="text"
+            name="reason"
+            placeholder="Reason for Visit"
+            required
+          />
+          <textarea
+            name="notes"
+            placeholder="Appointment Notes (Optional)"
+          ></textarea>
+
+          <!-- Appointment status -->
+          <select name="status" required>
+            <option value="Scheduled">Scheduled</option>
+            <option value="Rescheduled">Rescheduled</option>
+            <option value="Completed">Completed</option>
+            <option value="Canceled">Canceled</option>
+          </select>
+
+          <button type="submit">Save Appointment</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- =========================
+         EDIT APPOINTMENT MODAL
+         ========================= -->
+    <div class="modal-overlay" id="editAppointmentModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2>Edit Appointment</h2>
+          <button
+            class="close-btn"
+            onclick="closeModal('editAppointmentModal')"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form
+          action="{{ url_for('edit_appointment') }}"
+          method="POST"
+          class="form-grid"
+        >
+          <!-- Hidden id lets Flask know which appointment to update -->
+          <input type="hidden" id="editAppointmentId" name="id" />
+
+          <input
+            type="text"
+            id="editAppointmentDoctor"
+            name="doctor"
+            placeholder="Doctor Name"
+            required
+          />
+
+          <select
+            id="editDoctorTypeSelect"
+            name="doctor_type"
+            onchange="toggleEditCustomSpecialty()"
+            required
+          >
+            <option value="">Select Specialty</option>
+            <option value="Primary Care">Primary Care</option>
+            <option value="Dentistry">Dentistry</option>
+            <option value="Optometry / Ophthalmology">
+              Optometry / Ophthalmology
+            </option>
+            <option value="Neurology">Neurology</option>
+            <option value="Cardiology">Cardiology</option>
+            <option value="Dermatology">Dermatology</option>
+            <option value="Gynecology">Gynecology</option>
+            <option value="Psychiatry">Psychiatry</option>
+            <option value="Physical Therapy">Physical Therapy</option>
+            <option value="Other Specialty">Other Specialty</option>
+          </select>
+
+          <!-- Used when editing a custom specialty -->
+          <input
+            type="text"
+            id="editCustomSpecialtyInput"
+            name="custom_specialty"
+            placeholder="Enter Custom Specialty"
+            style="display: none"
+          />
+
+          <input type="date" id="editAppointmentDate" name="date" required />
+          <input
+            type="text"
+            id="editAppointmentReason"
+            name="reason"
+            placeholder="Reason for Visit"
+            required
+          />
+          <textarea
+            id="editAppointmentNotes"
+            name="notes"
+            placeholder="Appointment Notes (Optional)"
+          ></textarea>
+
+          <select id="editAppointmentStatus" name="status" required>
+            <option value="Scheduled">Scheduled</option>
+            <option value="Rescheduled">Rescheduled</option>
+            <option value="Completed">Completed</option>
+            <option value="Canceled">Canceled</option>
+          </select>
+
+          <button type="submit">Update Appointment</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
