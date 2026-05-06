@@ -9,8 +9,8 @@
       href="{{ url_for('static', filename='style.css') }}"
     />
   </head>
+
   <body>
-    <!-- Top navigation / header -->
     <header class="top-banner">
       <div class="top-banner-content">
         <div>
@@ -22,30 +22,31 @@
         </div>
 
         <nav class="top-nav">
+          {% if user %}
           <a href="/">Dashboard</a>
           <a href="/profile">Profile</a>
+          <a href="/logout">Logout</a>
+          {% else %}
           <a href="/login">Login</a>
           <a href="/signup">Sign Up</a>
+          {% endif %}
         </nav>
       </div>
     </header>
 
     <main class="container">
-      <!-- Welcome section -->
       <section class="card welcome-card">
-        <h2>Welcome back, User</h2>
+        <h2>Welcome, {{ user.first_name }}</h2>
         <p class="section-description">
-          Here’s your personal health dashboard. Track medications, symptoms,
-          and upcoming appointments.
+          Track medications, symptoms, and upcoming appointments in one place.
         </p>
       </section>
 
-      <!-- Medication section -->
       <section class="grid-two">
         <section class="card">
           <h2>Medication Tracker</h2>
           <p class="section-description">
-            Add medications with dosage and frequency.
+            Add medications with dosage, days, and time reminders.
           </p>
 
           <form
@@ -62,15 +63,69 @@
             <input
               type="text"
               name="dosage"
-              placeholder="Dosage (e.g. 200mg)"
+              placeholder="Dosage, e.g. 200mg"
               required
             />
-            <input
-              type="text"
-              name="frequency"
-              placeholder="Frequency (e.g. Twice a day)"
-              required
-            />
+
+            <label class="field-label">Days of Week</label>
+            <div class="day-button-row">
+              <label class="day-btn">
+                <input type="checkbox" name="days_of_week" value="Monday" />
+                <span>Mon</span>
+              </label>
+
+              <label class="day-btn">
+                <input type="checkbox" name="days_of_week" value="Tuesday" />
+                <span>Tue</span>
+              </label>
+
+              <label class="day-btn">
+                <input type="checkbox" name="days_of_week" value="Wednesday" />
+                <span>Wed</span>
+              </label>
+
+              <label class="day-btn">
+                <input type="checkbox" name="days_of_week" value="Thursday" />
+                <span>Thu</span>
+              </label>
+
+              <label class="day-btn">
+                <input type="checkbox" name="days_of_week" value="Friday" />
+                <span>Fri</span>
+              </label>
+
+              <label class="day-btn">
+                <input type="checkbox" name="days_of_week" value="Saturday" />
+                <span>Sat</span>
+              </label>
+
+              <label class="day-btn">
+                <input type="checkbox" name="days_of_week" value="Sunday" />
+                <span>Sun</span>
+              </label>
+            </div>
+
+            <label>
+              Times Per Day
+              <input
+                type="number"
+                id="timesPerDayInput"
+                name="times_per_day"
+                min="1"
+                max="4"
+                value="1"
+                required
+                oninput="updateMedicationTimeInputs()"
+              />
+            </label>
+
+            <div id="medicationTimesContainer" class="time-input-list">
+              <label>
+                Time 1
+                <input type="time" name="medication_times" required />
+              </label>
+            </div>
+
             <button type="submit">Add Medication</button>
           </form>
         </section>
@@ -85,15 +140,41 @@
               <div>
                 <h3>{{ med.name }}</h3>
                 <p><strong>Dosage:</strong> {{ med.dosage }}</p>
-                <p><strong>Frequency:</strong> {{ med.frequency }}</p>
+                <p><strong>Times per day:</strong> {{ med.times_per_day }}</p>
+
+                {% if med.medication_times %}
+                <p>
+                  <strong>Time(s):</strong> {{ med.medication_times|join(", ")
+                  }}
+                </p>
+                {% endif %} {% if med.days_of_week %}
+                <p><strong>Days:</strong> {{ med.days_of_week|join(", ") }}</p>
+                {% endif %}
               </div>
 
-              <form
-                action="{{ url_for('delete_medication', med_id=med._id) }}"
-                method="POST"
-              >
-                <button type="submit" class="delete-btn">Delete</button>
-              </form>
+              <div class="item-actions">
+                <button
+                  type="button"
+                  class="secondary-btn small-btn"
+                  onclick="openEditMedicationModal(
+                                            '{{ med._id|string }}',
+                                            '{{ med.name }}',
+                                            '{{ med.dosage }}',
+                                            '{{ med.times_per_day }}',
+                                            '{{ med.medication_times|join(',') }}',
+                                            '{{ med.days_of_week|join(',') }}'
+                                        )"
+                >
+                  Edit
+                </button>
+
+                <form
+                  action="{{ url_for('delete_medication', med_id=med._id) }}"
+                  method="POST"
+                >
+                  <button type="submit" class="delete-btn">Delete</button>
+                </form>
+              </div>
             </div>
             {% endfor %}
           </div>
@@ -103,9 +184,7 @@
         </section>
       </section>
 
-      <!-- Symptoms + appointments section -->
       <section class="grid-two">
-        <!-- Symptoms -->
         <section class="card">
           <div class="section-header">
             <div>
@@ -125,7 +204,7 @@
           </div>
 
           <div class="item-list top-space">
-            {% for symptom in symptoms %}
+            {% if symptoms %} {% for symptom in symptoms %}
             <div class="item-card">
               <div>
                 <h3>{{ symptom.name }}</h3>
@@ -134,20 +213,20 @@
                 <p><strong>Notes:</strong> {{ symptom.notes }}</p>
               </div>
 
-              <!-- Opens edit symptom modal and fills it with current symptom data -->
               <button
                 type="button"
                 class="secondary-btn small-btn"
-                onclick="openEditSymptomModal('{{ symptom._id|string  }}', '{{ symptom.name }}', '{{ symptom.severity }}', '{{ symptom.date }}', '{{ symptom.notes }}')"
+                onclick="openEditSymptomModal('{{ symptom._id|string }}', '{{ symptom.name }}', '{{ symptom.severity }}', '{{ symptom.date }}', '{{ symptom.notes }}')"
               >
                 Edit
               </button>
             </div>
-            {% endfor %}
+            {% endfor %} {% else %}
+            <p class="empty-state">No symptoms added yet.</p>
+            {% endif %}
           </div>
         </section>
 
-        <!-- Appointments -->
         <section class="card">
           <div class="section-header">
             <div>
@@ -166,7 +245,6 @@
             </button>
           </div>
 
-          <!-- Appointment category filter buttons -->
           <div class="appt-category-list top-space">
             <button
               class="appt-category-btn active"
@@ -206,9 +284,8 @@
             </button>
           </div>
 
-          <!-- Appointment cards -->
           <div class="item-list top-space">
-            {% for appt in appointments %}
+            {% if appointments %} {% for appt in appointments %}
             <div
               class="item-card appointment-card"
               data-category="{{ appt.doctor_type }}"
@@ -217,9 +294,13 @@
                 <h3>{{ appt.doctor }}</h3>
                 <p><strong>Specialty:</strong> {{ appt.doctor_type }}</p>
                 <p><strong>Date:</strong> {{ appt.date }}</p>
+
+                {% if appt.time %}
+                <p><strong>Time:</strong> {{ appt.time }}</p>
+                {% endif %}
+
                 <p><strong>Reason:</strong> {{ appt.reason }}</p>
 
-                <!-- Status badge -->
                 <p>
                   <strong>Status:</strong>
                   <span
@@ -234,19 +315,19 @@
                 {% endif %}
               </div>
 
-              <!-- Opens edit appointment modal and fills it with current appointment data -->
               <button
                 type="button"
                 class="secondary-btn small-btn"
-                onclick="openEditAppointmentModal('{{ appt.id }}', '{{ appt.doctor }}', '{{ appt.doctor_type }}', '{{ appt.date }}', '{{ appt.reason }}', '{{ appt.notes }}', '{{ appt.status }}')"
+                onclick="openEditAppointmentModal('{{ appt._id|string }}', '{{ appt.doctor }}', '{{ appt.doctor_type }}', '{{ appt.date }}', '{{ appt.time }}', '{{ appt.reason }}', '{{ appt.notes }}', '{{ appt.status }}')"
               >
                 Edit
               </button>
             </div>
-            {% endfor %}
+            {% endfor %} {% else %}
+            <p class="empty-state">No appointments added yet.</p>
+            {% endif %}
           </div>
 
-          <!-- Shows when no appointments exist in the selected category -->
           <p
             id="appointmentEmptyMessage"
             class="empty-state"
@@ -258,9 +339,6 @@
       </section>
     </main>
 
-    <!-- =========================
-         ADD SYMPTOM MODAL
-         ========================= -->
     <div class="modal-overlay" id="symptomModal">
       <div class="modal-box">
         <div class="modal-header">
@@ -284,9 +362,6 @@
       </div>
     </div>
 
-    <!-- =========================
-         EDIT SYMPTOM MODAL
-         ========================= -->
     <div class="modal-overlay" id="editSymptomModal">
       <div class="modal-box">
         <div class="modal-header">
@@ -301,9 +376,7 @@
           method="POST"
           class="form-grid"
         >
-          <!-- Hidden id lets Flask know which symptom to update -->
           <input type="hidden" id="editSymptomId" name="id" />
-
           <input
             type="text"
             id="editSymptomName"
@@ -324,15 +397,11 @@
             name="notes"
             placeholder="Notes"
           ></textarea>
-
           <button type="submit">Update Symptom</button>
         </form>
       </div>
     </div>
 
-    <!-- =========================
-         ADD APPOINTMENT MODAL
-         ========================= -->
     <div class="modal-overlay" id="appointmentModal">
       <div class="modal-box">
         <div class="modal-header">
@@ -349,7 +418,6 @@
         >
           <input type="text" name="doctor" placeholder="Doctor Name" required />
 
-          <!-- Dropdown for common specialties -->
           <select
             id="doctorTypeSelect"
             name="doctor_type"
@@ -371,7 +439,6 @@
             <option value="Other Specialty">Other Specialty</option>
           </select>
 
-          <!-- Only shown if user chooses Other Specialty -->
           <input
             type="text"
             id="customSpecialtyInput"
@@ -381,6 +448,7 @@
           />
 
           <input type="date" name="date" required />
+          <input type="time" name="time" required />
           <input
             type="text"
             name="reason"
@@ -392,7 +460,6 @@
             placeholder="Appointment Notes (Optional)"
           ></textarea>
 
-          <!-- Appointment status -->
           <select name="status" required>
             <option value="Scheduled">Scheduled</option>
             <option value="Rescheduled">Rescheduled</option>
@@ -405,9 +472,6 @@
       </div>
     </div>
 
-    <!-- =========================
-         EDIT APPOINTMENT MODAL
-         ========================= -->
     <div class="modal-overlay" id="editAppointmentModal">
       <div class="modal-box">
         <div class="modal-header">
@@ -425,9 +489,7 @@
           method="POST"
           class="form-grid"
         >
-          <!-- Hidden id lets Flask know which appointment to update -->
           <input type="hidden" id="editAppointmentId" name="id" />
-
           <input
             type="text"
             id="editAppointmentDoctor"
@@ -457,7 +519,6 @@
             <option value="Other Specialty">Other Specialty</option>
           </select>
 
-          <!-- Used when editing a custom specialty -->
           <input
             type="text"
             id="editCustomSpecialtyInput"
@@ -467,6 +528,7 @@
           />
 
           <input type="date" id="editAppointmentDate" name="date" required />
+          <input type="time" id="editAppointmentTime" name="time" required />
           <input
             type="text"
             id="editAppointmentReason"
@@ -492,7 +554,100 @@
       </div>
     </div>
 
-    <!-- JavaScript -->
+    <div class="modal-overlay" id="editMedicationModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2>Edit Medication</h2>
+          <button class="close-btn" onclick="closeModal('editMedicationModal')">
+            &times;
+          </button>
+        </div>
+
+        <form
+          action="{{ url_for('edit_medication') }}"
+          method="POST"
+          class="form-grid"
+        >
+          <input type="hidden" id="editMedicationId" name="id" />
+
+          <input
+            type="text"
+            id="editMedicationName"
+            name="name"
+            placeholder="Medication Name"
+            required
+          />
+
+          <input
+            type="text"
+            id="editMedicationDosage"
+            name="dosage"
+            placeholder="Dosage"
+            required
+          />
+
+          <!-- Days of Week -->
+          <label class="field-label">Days of Week</label>
+          <div class="day-button-row">
+            <label class="day-btn">
+              <input type="checkbox" name="days_of_week" value="Monday" />
+              <span>Mon</span>
+            </label>
+
+            <label class="day-btn">
+              <input type="checkbox" name="days_of_week" value="Tuesday" />
+              <span>Tue</span>
+            </label>
+
+            <label class="day-btn">
+              <input type="checkbox" name="days_of_week" value="Wednesday" />
+              <span>Wed</span>
+            </label>
+
+            <label class="day-btn">
+              <input type="checkbox" name="days_of_week" value="Thursday" />
+              <span>Thu</span>
+            </label>
+
+            <label class="day-btn">
+              <input type="checkbox" name="days_of_week" value="Friday" />
+              <span>Fri</span>
+            </label>
+
+            <label class="day-btn">
+              <input type="checkbox" name="days_of_week" value="Saturday" />
+              <span>Sat</span>
+            </label>
+
+            <label class="day-btn">
+              <input type="checkbox" name="days_of_week" value="Sunday" />
+              <span>Sun</span>
+            </label>
+          </div>
+
+          <!-- Times Per Day -->
+          <label>
+            Times Per Day
+            <input
+              type="number"
+              id="editTimesPerDayInput"
+              name="times_per_day"
+              min="1"
+              max="4"
+              value="1"
+              required
+              oninput="updateEditMedicationTimeInputs()"
+            />
+          </label>
+
+          <!-- Time Inputs -->
+          <div id="editMedicationTimesContainer" class="time-input-list"></div>
+
+          <button type="submit">Update Medication</button>
+        </form>
+      </div>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
 </html>

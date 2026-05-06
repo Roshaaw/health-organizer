@@ -15,10 +15,11 @@ function openEditSymptomModal(id, name, severity, date, notes) {
     openModal("editSymptomModal");
 }
 
-function openEditAppointmentModal(id, doctor, doctorType, date, reason, notes, status) {
+function openEditAppointmentModal(id, doctor, doctorType, date, time, reason, notes, status) {
     document.getElementById("editAppointmentId").value = id;
     document.getElementById("editAppointmentDoctor").value = doctor;
     document.getElementById("editAppointmentDate").value = date;
+    document.getElementById("editAppointmentTime").value = time;
     document.getElementById("editAppointmentReason").value = reason;
     document.getElementById("editAppointmentNotes").value = notes;
     document.getElementById("editAppointmentStatus").value = status;
@@ -121,3 +122,90 @@ window.addEventListener("DOMContentLoaded", function () {
         showCategory("Primary Care", firstButton);
     }
 });
+
+function updateMedicationTimeInputs() {
+    const timesInput = document.getElementById("timesPerDayInput");
+    const container = document.getElementById("medicationTimesContainer");
+
+    let count = parseInt(timesInput.value, 10);
+
+    if (isNaN(count) || count < 1) {
+        count = 1;
+    }
+
+    if (count > 4) {
+        count = 4;
+    }
+
+    timesInput.value = count;
+    container.innerHTML = "";
+
+    for (let i = 1; i <= count; i++) {
+        const label = document.createElement("label");
+        label.innerHTML = `
+            Time ${i}
+            <input type="time" name="medication_times" required>
+        `;
+        container.appendChild(label);
+    }
+}
+
+function openEditMedicationModal(id, name, dosage, timesPerDay, times, days) {
+    document.getElementById("editMedicationId").value = id;
+    document.getElementById("editMedicationName").value = name;
+    document.getElementById("editMedicationDosage").value = dosage;
+
+    const timesInput = document.getElementById("editTimesPerDayInput");
+    timesInput.value = timesPerDay;
+
+    // Clear all day selections first
+    document.querySelectorAll("#editMedicationModal input[name='days_of_week']")
+        .forEach(cb => cb.checked = false);
+
+    // Set selected days
+    if (days) {
+        const selectedDays = days.split(",");
+        selectedDays.forEach(day => {
+            const checkbox = document.querySelector(
+                `#editMedicationModal input[value='${day}']`
+            );
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+
+    // Set time inputs
+    updateEditMedicationTimeInputs();
+
+    const timeList = times ? times.split(",") : [];
+    const inputs = document.querySelectorAll("#editMedicationTimesContainer input");
+
+    inputs.forEach((input, index) => {
+        if (timeList[index]) {
+            input.value = timeList[index];
+        }
+    });
+
+    openModal("editMedicationModal");
+}
+
+function updateEditMedicationTimeInputs() {
+    const timesInput = document.getElementById("editTimesPerDayInput");
+    const container = document.getElementById("editMedicationTimesContainer");
+
+    let count = parseInt(timesInput.value, 10);
+
+    if (isNaN(count) || count < 1) count = 1;
+    if (count > 4) count = 4;
+
+    timesInput.value = count;
+    container.innerHTML = "";
+
+    for (let i = 1; i <= count; i++) {
+        const label = document.createElement("label");
+        label.innerHTML = `
+            Time ${i}
+            <input type="time" name="medication_times" required>
+        `;
+        container.appendChild(label);
+    }
+}

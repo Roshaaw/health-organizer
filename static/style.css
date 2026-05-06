@@ -375,3 +375,127 @@ button:hover {
     background: #fde2e2;
     color: #b42318;
 }
+
+/*Profile page */
+.profile-card {
+    padding: 32px;
+}
+
+.profile-form {
+    margin-top: 24px;
+}
+
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 22px;
+}
+
+.profile-form label {
+    display: grid;
+    gap: 8px;
+    color: #425b65;
+    font-weight: 600;
+}
+
+.profile-form input {
+    font-weight: 500;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.profile-save-btn {
+    width: auto;
+    margin-top: 24px;
+    padding: 12px 22px;
+}
+
+@media (max-width: 700px) {
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-card {
+        padding: 24px;
+    }
+
+    .profile-save-btn {
+        width: 100%;
+    }
+}
+
+.success-message {
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #d9f2e6;
+    color: #256c4b;
+    font-weight: 600;
+}
+
+/* add medication frequency */ 
+.day-button-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.day-btn {
+    display: inline-flex;
+}
+
+.day-btn input {
+    display: none;
+}
+
+.day-btn span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    background: #e5eeef;
+    color: #425b65;
+    border: 1px solid #d1dfe1;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.day-btn input:checked + span {
+    background: #4f8a8b;
+    color: white;
+    border-color: #4f8a8b;
+}
+
+.time-input-list {
+    display: grid;
+    gap: 12px;
+}
+
+
+/* medication btn's*/
+
+.item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.edit-btn {
+    background-color: #7b8c9a;
+}
+
+.edit-btn:hover {
+    background-color: #667684;
+}
+
+.item-actions button {
+    width: 100px;
+    text-align: center;
+}

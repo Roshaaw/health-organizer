@@ -11,31 +11,97 @@
         <div class="top-banner-content">
             <div>
                 <h1>User Profile</h1>
-                <p>View personal and medical details in one place.</p>
+                <p>View and update your personal health details.</p>
             </div>
+
             <nav class="top-nav">
-                <a href="/">Dashboard</a>
-                <a href="/login">Login</a>
-                <a href="/signup">Sign Up</a>
+                {% if user %}
+                    <a href="/">Dashboard</a>
+                    <a href="/profile">Profile</a>
+                    <a href="/logout">Logout</a>
+                {% else %}
+                    <a href="/login">Login</a>
+                    <a href="/signup">Sign Up</a>
+                {% endif %}
             </nav>
         </div>
     </header>
 
     <main class="container">
-        <section class="card">
-            <h2>Basic Information</h2>
-            <div class="profile-grid">
-                <div class="profile-item"><span>Full Name</span><strong>{{ user.full_name }}</strong></div>
-                <div class="profile-item"><span>Email</span><strong>{{ user.email }}</strong></div>
-                <div class="profile-item"><span>Phone</span><strong>{{ user.phone }}</strong></div>
-                <div class="profile-item"><span>Birthday</span><strong>{{ user.birthday }}</strong></div>
-                <div class="profile-item"><span>Height</span><strong>{{ user.height }}</strong></div>
-                <div class="profile-item"><span>Weight</span><strong>{{ user.weight }}</strong></div>
-                <div class="profile-item"><span>Blood Type</span><strong>{{ user.blood_type }}</strong></div>
-                <div class="profile-item"><span>Allergies</span><strong>{{ user.allergies }}</strong></div>
-                <div class="profile-item"><span>Primary Doctor</span><strong>{{ user.primary_doctor }}</strong></div>
-                <div class="profile-item"><span>Emergency Contact</span><strong>{{ user.emergency_contact }}</strong></div>
+        <section class="card profile-card">
+            <div class="section-header">
+                <div>
+                    <h2>Your Health Profile</h2>
+                    <p class="section-description">
+                        Update your personal and medical details below.
+                    </p>
+                </div>
             </div>
+
+            {% if success %}
+                <p class="success-message">Profile updated successfully!</p>
+            {% endif %}
+
+            <form class="profile-form" method="POST" action="/profile/update">
+                <div class="profile-form-grid">
+                    <label>
+                        First Name
+                        <input type="text" name="first_name" value="{{ user.first_name }}" required>
+                    </label>
+
+                    <label>
+                        Last Name
+                        <input type="text" name="last_name" value="{{ user.last_name }}" required>
+                    </label>
+
+                    <label>
+                        Email
+                        <input type="email" name="email" value="{{ user.email }}" required>
+                    </label>
+
+                    <label>
+                        Phone
+                        <input type="tel" name="phone" value="{{ user.phone }}" placeholder="123-456-7890">
+                    </label>
+
+                    <label>
+                        Birthday
+                        <input type="date" name="birthday" value="{{ user.birthday }}">
+                    </label>
+
+                    <label>
+                        Height
+                        <input type="text" name="height" value="{{ user.height }}" placeholder="5'10&quot;">
+                    </label>
+
+                    <label>
+                        Weight
+                        <input type="text" name="weight" value="{{ user.weight }}" placeholder="160 lbs">
+                    </label>
+
+                    <label>
+                        Blood Type
+                        <input type="text" name="blood_type" value="{{ user.blood_type }}" placeholder="O+">
+                    </label>
+
+                    <label class="full-width">
+                        Allergies
+                        <input type="text" name="allergies" value="{{ user.allergies }}" placeholder="None listed">
+                    </label>
+
+                    <label>
+                        Primary Doctor
+                        <input type="text" name="primary_doctor" value="{{ user.primary_doctor }}">
+                    </label>
+
+                    <label>
+                        Emergency Contact
+                        <input type="text" name="emergency_contact" value="{{ user.emergency_contact }}">
+                    </label>
+                </div>
+
+                <button class="profile-save-btn" type="submit">Save Profile</button>
+            </form>
         </section>
     </main>
 </body>
